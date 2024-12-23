@@ -26,10 +26,16 @@ phases:
 
   build:
     commands:
-      - echo "Inicializando o Terraform..."
-      - terraform init
+      - echo "Verificando arquivos do Terraform..."
+      - ls -l
+      - echo "Mostrando conteúdo de main.tf..."
+      - cat main.tf
+      - echo "Validando configuração do Terraform..."
+      - terraform validate || { echo "Erro na validação do Terraform"; exit 1; }
+      - echo "Exibindo plano de execução do Terraform..."
+      - terraform plan || { echo "Erro ao gerar plano do Terraform"; exit 1; }
       - echo "Aplicando a infraestrutura..."
-      - terraform apply -auto-approve
+      - terraform apply -auto-approve || { echo "Erro ao aplicar o Terraform"; exit 1; }
       - echo "Substituindo o valor de DB_HOST no Dockerfile..."
       - export DB_HOST=$(aws rds describe-db-instances --db-instance-identifier postgres --query "DBInstances[0].Endpoint.Address" --output text --region $REGION)
       - sed -i "s/DB_HOST_VALUE/$DB_HOST/g" Dockerfile
@@ -40,8 +46,10 @@ phases:
 
   post_build:
     commands:
+      - echo "Autenticando no Amazon ECR..."
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin 851725492449.dkr.ecr.$REGION.amazonaws.com || { echo "Erro na autenticação do ECR"; exit 1; }
       - echo "Enviando a imagem para o ECR..."
-      - docker push 851725492449.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest
+      - docker push 851725492449.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest || { echo "Erro ao enviar imagem para o ECR"; exit 1; }
       - echo "Gerando o arquivo imagedefinitions.json..."
       - echo '[{"name":"kxc-simple-api","imageUri":"851725492449.dkr.ecr.'$REGION'.amazonaws.com/'$REPO_NAME':latest"}]' > imagedefinitions.json
       - echo "Build concluído com sucesso!"
