@@ -16,23 +16,14 @@ phases:
       - unzip terraform_1.5.5_linux_amd64.zip
       - mv terraform /usr/local/bin/
 
-  terraform:
+  build:
     commands:
       - echo "Inicializando o Terraform..."
       - terraform init
       - echo "Aplicando a infraestrutura..."
       - terraform apply -auto-approve
-
-  pre_build:
-    commands:
-      - echo "Fazendo login no Amazon ECR..."
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725492449.dkr.ecr.us-east-1.amazonaws.com
-      - echo "Obtendo o endpoint do RDS..."
-      - export DB_HOST=$(aws rds describe-db-instances --db-instance-identifier postgres --query "DBInstances[0].Endpoint.Address" --output text --region $REGION)
-
-  build:
-    commands:
       - echo "Substituindo o valor de DB_HOST no Dockerfile..."
+      - export DB_HOST=$(aws rds describe-db-instances --db-instance-identifier postgres --query "DBInstances[0].Endpoint.Address" --output text --region $REGION)
       - sed -i "s/DB_HOST_VALUE/$DB_HOST/g" Dockerfile
       - echo "Construindo a imagem Docker..."
       - docker build -t $REPO_NAME .
