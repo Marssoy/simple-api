@@ -10,13 +10,18 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
+      - echo "Atualizando pacotes e instalando dependências..."
       - sudo apt-get update
       - sudo apt-get install -y wget unzip
       - echo "Baixando Terraform..."
-      - wget https://releases.hashicorp.com/terraform/1.5.5/terraform_1.5.5_linux_amd64.zip
-      - echo "Descompactando e movendo Terraform para /usr/local/bin..."
-      - unzip terraform_1.5.5_linux_amd64.zip
+      - wget -q https://releases.hashicorp.com/terraform/1.5.5/terraform_1.5.5_linux_amd64.zip
+      - echo "Verificando se o arquivo foi baixado corretamente..."
+      - ls -l terraform_1.5.5_linux_amd64.zip
+      - echo "Descompactando o Terraform..."
+      - unzip -q terraform_1.5.5_linux_amd64.zip || (echo "Erro ao descompactar o Terraform. Verifique se o arquivo está correto." && exit 1)
+      - echo "Movendo o Terraform para /usr/local/bin..."
       - sudo mv terraform /usr/local/bin/
+      - echo "Verificando versão do Terraform..."
       - terraform --version
 
   build:
