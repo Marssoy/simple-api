@@ -1,3 +1,6 @@
+#postgres.crw8g0kciaek.us-east-1.rds.amazonaws.com
+
+
 version: 0.2
 
 env:
@@ -10,7 +13,7 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
-      - echo "Atualizando pacotes..."
+      - echo "Instalando dependências..."
       - sudo apt-get update -y
       - echo "Instalando dependências..."
       - sudo apt-get install -y wget gpg apt-transport-https
@@ -21,23 +24,21 @@ phases:
       - sudo apt-get update -y
       - echo "Instalando Terraform..."
       - sudo apt-get install -y terraform
-      - echo "Verificando versão do Terraform..."
-      - terraform --version
+
+  pre_build:
+    commands:
+      - echo "Exibindo plano de execução do Terraform..."
+      - terraform plan 
+      - echo "Aplicando a infraestrutura...
+      - terraform apply -auto-approve
+      - echo "Fazendo login no Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725492449.dkr.ecr.us-east-1.amazonaws.com
+      - echo "Obtendo o endpoint do RDS..."
+      - export DB_HOST=$(aws rds describe-db-instances --db-instance-identifier postgres --query "DBInstances[0].Endpoint.Address" --output text --region $REGION)
 
   build:
     commands:
-      - echo "Verificando arquivos do Terraform..."
-      - ls -l
-      - echo "Mostrando conteúdo de main.tf..."
-      - cat main.tf
-      - echo "Validando configuração do Terraform..."
-      - terraform validate || { echo "Erro na validação do Terraform"; exit 1; }
-      - echo "Exibindo plano de execução do Terraform..."
-      - terraform plan || { echo "Erro ao gerar plano do Terraform"; exit 1; }
-      - echo "Aplicando a infraestrutura..."
-      - terraform apply -auto-approve || { echo "Erro ao aplicar o Terraform"; exit 1; }
       - echo "Substituindo o valor de DB_HOST no Dockerfile..."
-      - export DB_HOST=$(aws rds describe-db-instances --db-instance-identifier postgres --query "DBInstances[0].Endpoint.Address" --output text --region $REGION)
       - sed -i "s/DB_HOST_VALUE/$DB_HOST/g" Dockerfile
       - echo "Construindo a imagem Docker..."
       - docker build -t $REPO_NAME .
@@ -46,10 +47,8 @@ phases:
 
   post_build:
     commands:
-      - echo "Autenticando no Amazon ECR..."
-      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin 851725492449.dkr.ecr.$REGION.amazonaws.com || { echo "Erro na autenticação do ECR"; exit 1; }
       - echo "Enviando a imagem para o ECR..."
-      - docker push 851725492449.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest || { echo "Erro ao enviar imagem para o ECR"; exit 1; }
+      - docker push 851725492449.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest
       - echo "Gerando o arquivo imagedefinitions.json..."
       - echo '[{"name":"kxc-simple-api","imageUri":"851725492449.dkr.ecr.'$REGION'.amazonaws.com/'$REPO_NAME':latest"}]' > imagedefinitions.json
       - echo "Build concluído com sucesso!"
