@@ -32,6 +32,8 @@ phases:
     commands:
       - echo "Enviando a imagem para o ECR..."
       - docker push 851725492449.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest
+      - echo "Gerando o arquivo imagedefinitions.json..."
+      - echo '[{"name":"kxc-simple-api","imageUri":"851725492449.dkr.ecr.'$REGION'.amazonaws.com/'$REPO_NAME':latest"}]' > imagedefinitions.json
       - echo "Build concluído com sucesso!"
 
 artifacts:
