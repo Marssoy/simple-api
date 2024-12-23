@@ -15,5 +15,3 @@ COPY . .
 EXPOSE 3000
 
 CMD [ "npm", "run", "start" ]
-
-#postgres.crw8g0kciaek.us-east-1.rds.amazonaws.com
