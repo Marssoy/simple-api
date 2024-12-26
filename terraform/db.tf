@@ -11,7 +11,7 @@ resource "aws_db_instance" "kxc-postgres" {
     port = 5432
     backup_retention_period = 0
     skip_final_snapshot = true
-    publicly_accessible = true
+    publicly_accessible = false
     db_subnet_group_name = aws_db_subnet_group.db_group_private.name
     vpc_security_group_ids = [aws_security_group.kxc-db-sg.id]
     tags = {
