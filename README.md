@@ -22,3 +22,10 @@ DB_HOST | Endereço do banco de dados |
 DB_PORT | Port do banco de dados | 5432
 DB_USER | Usuário do banco de dados | 
 DB_PASSWORD | Senha do banco de dados | 
+
+<!DOCTYPE html>
+<html>
+<p>
+  <img src="kxc-simple-api.gif" alt="Simple-api">
+</p>
+</html>
